@@ -220,7 +220,7 @@ function renderResult(order, response) {
     <div class="card-body">
       ${body || '<em class="text-muted">No routing produced.</em>'}
       <a class="small" data-bs-toggle="collapse" href="#${rawId}" role="button">Raw JSON response</a>
-      <pre class="collapse mt-2 bg-light p-2 rounded"><code>${escapeHtml(JSON.stringify(response, null, 2))}</code></pre>
+      <pre id="${rawId}" class="collapse mt-2 bg-light p-2 rounded"><code>${escapeHtml(JSON.stringify(response, null, 2))}</code></pre>
     </div>`;
   return card;
 }
