@@ -24,7 +24,7 @@ object Csv {
         fun value(row: List<String>, vararg headerCandidates: String): String? {
             for (candidate in headerCandidates) {
                 val i = index[candidate.trim().lowercase()] ?: continue
-                return row.getOrNull(i)?.trim()
+                return row.getOrNull(i) // parseLine already trims each field
             }
             return null
         }

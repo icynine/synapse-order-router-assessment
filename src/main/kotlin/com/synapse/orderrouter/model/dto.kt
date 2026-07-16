@@ -17,8 +17,9 @@ data class RouteRequest(
     val customerZip: String? = null,
     val mailOrder: Boolean = false,
     val items: List<OrderItem>? = null,
+    // priority is accepted and echoed by clients but not yet used for routing;
+    // kept as a forward-looking hook (see ARCHITECTURE.md).
     val priority: String? = null,
-    val notes: String? = null,
 )
 
 data class OrderItem(

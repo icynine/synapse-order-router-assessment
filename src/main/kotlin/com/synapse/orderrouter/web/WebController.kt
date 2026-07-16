@@ -41,18 +41,11 @@ class WebController(
             }
         """.trimIndent()
 
+        // Derived from the single sample above so the two never drift apart.
         private val CURL_COMMAND = """
             curl -s -X POST http://localhost:8080/api/route \
               -H 'Content-Type: application/json' \
-              -d '{
-                "order_id": "ORD-001",
-                "customer_zip": "10015",
-                "mail_order": false,
-                "items": [
-                  { "product_code": "WC-STD-001", "quantity": 1 },
-                  { "product_code": "OX-PORT-024", "quantity": 1 }
-                ]
-              }'
+              -d '$SAMPLE_ORDER_JSON'
         """.trimIndent()
     }
 }

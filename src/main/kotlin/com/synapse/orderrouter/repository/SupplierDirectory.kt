@@ -3,6 +3,7 @@ package com.synapse.orderrouter.repository
 import com.synapse.orderrouter.config.RouterDataProperties
 import com.synapse.orderrouter.model.Supplier
 import com.synapse.orderrouter.model.ZipCoverage
+import com.synapse.orderrouter.model.normalizeCategory
 import com.synapse.orderrouter.service.Csv
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ResourceLoader
@@ -23,7 +24,18 @@ class SupplierDirectory(
     private val log = LoggerFactory.getLogger(javaClass)
     private val suppliers: List<Supplier> = load()
 
-    fun all(): List<Supplier> = suppliers
+    /**
+     * Category → suppliers index, each list pre-sorted by id so routing ties
+     * resolve deterministically. Lets the router consider only relevant
+     * suppliers instead of scanning the whole directory per request.
+     */
+    private val byCategory: Map<String, List<Supplier>> =
+        suppliers.flatMap { supplier -> supplier.categoryKeys.map { it to supplier } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, list) -> list.sortedBy { it.id } }
+
+    /** Suppliers that handle the given (normalized) category, sorted by id. */
+    fun handling(categoryKey: String): List<Supplier> = byCategory[categoryKey].orEmpty()
 
     val size: Int get() = suppliers.size
 
@@ -51,7 +63,7 @@ class SupplierDirectory(
 
     private fun parseCategories(raw: String?): Set<String> =
         raw?.split(",")
-            ?.map { it.trim().lowercase() }
+            ?.map { normalizeCategory(it) }
             ?.filter { it.isNotEmpty() }
             ?.toSet()
             ?: emptySet()

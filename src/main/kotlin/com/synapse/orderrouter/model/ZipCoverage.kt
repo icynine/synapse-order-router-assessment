@@ -20,9 +20,6 @@ class ZipCoverage private constructor(private val ranges: List<IntRange>) {
         return ranges.any { value in it }
     }
 
-    /** Number of parsed ranges — exposed mainly for diagnostics/tests. */
-    val rangeCount: Int get() = ranges.size
-
     companion object {
         /**
          * Parses a raw `service_zips` cell into coverage. Tokens that cannot be

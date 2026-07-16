@@ -1,14 +1,20 @@
 package com.synapse.orderrouter.model
 
 /**
- * A product from products.csv. [categoryKey] is the normalized (lower-cased,
- * trimmed) category used for matching against supplier capabilities, because
- * the source data mixes casing (e.g. "CPAP" vs "cpap").
+ * Normalizes a category label for matching. Products and suppliers must use the
+ * same rule, since the source data mixes casing/spacing (e.g. "CPAP" vs "cpap").
+ * This is the single source of truth for both sides of that comparison.
+ */
+fun normalizeCategory(raw: String): String = raw.trim().lowercase()
+
+/**
+ * A product from products.csv. [categoryKey] is the normalized category used for
+ * matching against supplier capabilities.
  */
 data class Product(
     val code: String,
     val name: String,
     val category: String,
 ) {
-    val categoryKey: String = category.trim().lowercase()
+    val categoryKey: String = normalizeCategory(category)
 }

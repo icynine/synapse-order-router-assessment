@@ -43,16 +43,19 @@ class RoutingService(
     /** An order line item successfully resolved to a known [Product]. */
     private data class ResolvedItem(val productCode: String, val quantity: Int, val product: Product)
 
-    /** A supplier together with the remaining items it can fulfill and how. */
-    private data class Candidate(
-        val supplier: Supplier,
-        val entries: List<Entry>,
-    ) {
-        data class Entry(val item: ResolvedItem, val mode: String)
+    /**
+     * A supplier eligible for this order, paired with its fulfillment mode.
+     * [local] is true when the supplier serves the customer's ZIP; it is uniform
+     * across all of the supplier's items (mode depends on supplier + order, not
+     * on the individual item). Computed once per order.
+     */
+    private class EligibleSupplier(val supplier: Supplier, val local: Boolean)
 
-        val coveredCount: Int get() = entries.size
-        val localCount: Int get() = entries.count { it.mode == MODE_LOCAL }
-        val effectiveScore: Double get() = supplier.satisfaction ?: UNRATED_SCORE
+    /** An eligible supplier together with the remaining items it can cover. */
+    private class Candidate(val eligible: EligibleSupplier, val items: List<ResolvedItem>) {
+        val coveredCount: Int get() = items.size
+        val local: Boolean get() = eligible.local
+        val effectiveScore: Double get() = eligible.supplier.satisfaction ?: UNRATED_SCORE
     }
 
     fun route(request: RouteRequest): RouteResponse {
@@ -65,7 +68,7 @@ class RoutingService(
         // but do not stop us from routing the items we *can* place.
         val errors = mutableListOf<String>()
         val resolved = mutableListOf<ResolvedItem>()
-        for (item in request.items!!) {
+        for (item in request.items.orEmpty()) {
             val product = productCatalog.findByCode(item.productCode!!)
             if (product == null) {
                 errors.add("Unknown product code: ${item.productCode}")
@@ -99,61 +102,74 @@ class RoutingService(
         resolved: List<ResolvedItem>,
         request: RouteRequest,
     ): Pair<List<SupplierShipment>, List<ResolvedItem>> {
+        if (resolved.isEmpty()) return emptyList<SupplierShipment>() to emptyList()
+
+        val eligible = eligibleSuppliers(resolved, request)
         val remaining = resolved.toMutableList()
         val shipments = mutableListOf<SupplierShipment>()
-        // Sort suppliers by id so ties resolve deterministically (earliest id wins).
-        val suppliers = supplierDirectory.all().sortedBy { it.id }
 
         while (remaining.isNotEmpty()) {
-            val best = suppliers
-                .map { candidateFor(it, remaining, request) }
+            val best = eligible
+                .map { candidate -> Candidate(candidate, remaining.filter { candidate.supplier.handlesCategory(it.product.categoryKey) }) }
                 .filter { it.coveredCount > 0 }
                 .maxWithOrNull(preference)
-                ?: break // no supplier can fulfill any remaining item
+                ?: break // no eligible supplier can fulfill any remaining item
 
             shipments.add(best.toShipment())
-            remaining.removeAll(best.entries.map { it.item }.toSet())
+            remaining.removeAll(best.items.toSet())
         }
         return shipments to remaining
     }
 
-    /** Which of [items] the given supplier can fulfill, and in what mode. */
-    private fun candidateFor(supplier: Supplier, items: List<ResolvedItem>, request: RouteRequest): Candidate {
-        val servesZip = request.customerZip?.let { supplier.servesZip(it) } ?: false
-        val entries = items.mapNotNull { item ->
-            if (!supplier.handlesCategory(item.product.categoryKey)) return@mapNotNull null
-            val mode = when {
-                servesZip -> MODE_LOCAL
-                request.mailOrder && supplier.canMailOrder -> MODE_MAIL
-                else -> return@mapNotNull null // not eligible geographically
+    /**
+     * The suppliers eligible for this order — those handling at least one
+     * requested category and reachable (serve the ZIP, or ship nationally when
+     * mail order is allowed) — each paired with its fulfillment mode. Computed
+     * once per order and sorted by id so ties resolve deterministically. Only
+     * suppliers handling a requested category are considered, via the catalog
+     * index, rather than scanning the whole directory.
+     */
+    private fun eligibleSuppliers(resolved: List<ResolvedItem>, request: RouteRequest): List<EligibleSupplier> {
+        val zip = request.customerZip!! // validated present before assignment
+        val categories = resolved.mapTo(mutableSetOf()) { it.product.categoryKey }
+        return categories
+            .flatMap { supplierDirectory.handling(it) }
+            .distinctBy { it.id }
+            .sortedBy { it.id }
+            .mapNotNull { supplier ->
+                when {
+                    supplier.servesZip(zip) -> EligibleSupplier(supplier, local = true)
+                    request.mailOrder && supplier.canMailOrder -> EligibleSupplier(supplier, local = false)
+                    else -> null // not reachable for this order
+                }
             }
-            Candidate.Entry(item, mode)
-        }
-        return Candidate(supplier, entries)
     }
 
-    private fun Candidate.toShipment(): SupplierShipment = SupplierShipment(
-        supplierId = supplier.id,
-        supplierName = supplier.name,
-        satisfactionScore = supplier.satisfaction,
-        items = entries.map {
-            RoutedItem(
-                productCode = it.item.productCode,
-                quantity = it.item.quantity,
-                category = it.item.product.category,
-                fulfillmentMode = it.mode,
-            )
-        },
-    )
+    private fun Candidate.toShipment(): SupplierShipment {
+        val mode = if (local) MODE_LOCAL else MODE_MAIL
+        return SupplierShipment(
+            supplierId = eligible.supplier.id,
+            supplierName = eligible.supplier.name,
+            satisfactionScore = eligible.supplier.satisfaction,
+            items = items.map {
+                RoutedItem(
+                    productCode = it.productCode,
+                    quantity = it.quantity,
+                    category = it.product.category,
+                    fulfillmentMode = mode,
+                )
+            },
+        )
+    }
 
     /**
      * "Better" candidate ordering (greatest wins): more items covered, then
-     * higher satisfaction, then more locally-fulfilled items.
+     * higher satisfaction, then local preferred over mail order (true > false).
      */
     private val preference: Comparator<Candidate> = compareBy(
         { it.coveredCount },
         { it.effectiveScore },
-        { it.localCount },
+        { it.local },
     )
 
     private fun validate(request: RouteRequest): List<String> {

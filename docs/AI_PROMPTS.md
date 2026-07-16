@@ -113,6 +113,19 @@ sometimes `"no ratings yet"`, and category casing inconsistency (`CPAP` vs
 
 ---
 
+### 9. Docs reorganization and simplify pass
+
+> Move ARCHITECTURE.md and AI_PROMPTS.md into docs/ (fixing cross-references),
+> then run a simplify pass over the entire code base: fan out four independent
+> review agents (reuse, simplification, efficiency, altitude), each returning
+> concrete findings; dedup them and apply the quality fixes (no behavior
+> changes), keeping the test suite green. Commit the updates.
+
+This was a quality-only cleanup — reuse, simplification, efficiency, and
+altitude — deliberately excluding correctness-bug hunting.
+
+---
+
 ### Notes on process
 
 - Work was committed incrementally after each phase (scaffold → data layer →

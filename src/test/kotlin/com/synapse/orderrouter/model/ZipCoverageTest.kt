@@ -1,7 +1,6 @@
 package com.synapse.orderrouter.model
 
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -49,8 +48,10 @@ class ZipCoverageTest {
     @Test
     fun `skips unparseable tokens and inverted ranges without failing`() {
         val coverage = ZipCoverage.parse("abc, 10001, 10100-10000")
-        assertEquals(1, coverage.rangeCount) // only 10001 survives
-        assertTrue(coverage.covers("10001"))
+        assertTrue(coverage.covers("10001")) // the one valid token survives
+        // The inverted range 10100-10000 is dropped, not silently normalized,
+        // so nothing inside 10000..10100 is covered.
+        assertFalse(coverage.covers("10050"))
     }
 
     @Test
