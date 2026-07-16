@@ -1,0 +1,7 @@
+supplier_id,suplier_name,service_zips,product_categories,customer_satisfaction_score,can_mail_order?
+SUP-A,Alpha Full Service,10010-10020,"wheelchair, oxygen",9,y
+SUP-B,Bravo Wheels,10015,wheelchair,5,n
+SUP-C,Charlie Oxygen,10015,oxygen,8,y
+SUP-D,Delta Mail Respiratory,90001,"CPAP, nebulizer",7,y
+SUP-E,Echo Unrated,10015,wheelchair,no ratings yet,y
+SUP-F,Foxtrot Local CPAP,10015,cpap,7,n
