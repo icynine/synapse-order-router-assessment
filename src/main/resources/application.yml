@@ -1,6 +1,10 @@
 spring:
   application:
     name: order-router
+  jackson:
+    # API contract uses snake_case (order_id, mail_order, supplier_id, ...).
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
   servlet:
     multipart:
       # Order upload files are tiny; cap to protect the endpoint.
