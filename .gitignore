@@ -16,10 +16,12 @@ build/
 # Logs
 *.log
 
-# Company-provided assessment materials — kept locally, excluded from the
-# public repo. The app's own copy of the data lives in src/main/resources/data/.
+# Take-home instructions — kept local, excluded from the public repo.
 Take Home Instructions.pdf
 Take Home Instructions.docx
+
+# Root copies of the provided data duplicate src/main/resources/data/, so they
+# stay out of the repo. sample_orders.json IS included (see repo root) as a
+# ready-to-upload example for the test console.
 /products.csv
 /suppliers.csv
-/sample_orders.json
