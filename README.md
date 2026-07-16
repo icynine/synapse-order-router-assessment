@@ -140,7 +140,7 @@ was fully routable.
 ## Routing logic
 
 Optimized in strict priority order (see
-[ARCHITECTURE.md](ARCHITECTURE.md) for the full design):
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design):
 
 1. **Feasibility** — only suppliers that both handle the product category *and*
    are geographically eligible (serve the ZIP, or ship nationally when
@@ -188,13 +188,13 @@ alternate datasets can be supplied without a rebuild.
 32 tests cover ZIP parsing, CSV parsing, the routing engine (consolidation,
 quality/geo tie-breaks, mail-order eligibility, infeasibility), all validation
 errors, and the full HTTP API contract. See
-[ARCHITECTURE.md](ARCHITECTURE.md#testing-strategy) for the strategy.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing-strategy) for the strategy.
 
 ---
 
 ## Documentation
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** — components, interactions, and how to
-  extend each part.
-- **[AI_PROMPTS.md](AI_PROMPTS.md)** — the significant AI prompts used to build
-  this project, in order.
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — components, interactions, and
+  how to extend each part.
+- **[docs/AI_PROMPTS.md](docs/AI_PROMPTS.md)** — the significant AI prompts used to
+  build this project, in order.

@@ -197,7 +197,7 @@ POST /api/route
   against the real bundled data: always-200, `feasible` semantics, snake_case
   JSON shape, malformed-body handling, and that the console page renders.
 
-See [README.md](README.md#testing) to run them.
+See [README.md](../README.md#testing) to run them.
 
 ---
 
