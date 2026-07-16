@@ -15,3 +15,11 @@ build/
 
 # Logs
 *.log
+
+# Company-provided assessment materials — kept locally, excluded from the
+# public repo. The app's own copy of the data lives in src/main/resources/data/.
+Take Home Instructions.pdf
+Take Home Instructions.docx
+/products.csv
+/suppliers.csv
+/sample_orders.json
