@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: order-router
+  servlet:
+    multipart:
+      # Order upload files are tiny; cap to protect the endpoint.
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8080
+
+router:
+  data:
+    # Classpath locations for the reference data. Overridable via env vars
+    # (ROUTER_DATA_PRODUCTS / ROUTER_DATA_SUPPLIERS) for alternate datasets.
+    products: classpath:data/products.csv
+    suppliers: classpath:data/suppliers.csv
+
+logging:
+  level:
+    com.synapse.orderrouter: INFO
