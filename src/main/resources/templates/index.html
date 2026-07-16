@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Order Router — API Test Console</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
+    <style>
+        body { background: #f5f7fa; }
+        pre { white-space: pre-wrap; word-break: break-word; }
+        .mono { font-family: var(--bs-font-monospace); font-size: 0.85rem; }
+        #curlBlock { max-height: 320px; overflow: auto; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">Multi-Supplier Order Router</span>
+        <span class="navbar-text text-light small">
+            <span th:text="${supplierCount}">0</span> suppliers ·
+            <span th:text="${productCount}">0</span> products
+        </span>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div class="row g-4">
+        <!-- Left: input -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>1 · Provide orders</strong></div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">
+                        Paste JSON (a single order or an array), or upload a <code>.json</code> /
+                        <code>.csv</code> file like the provided sample. Each order is sent to
+                        <code>POST /api/route</code>.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="btn btn-outline-secondary btn-sm">
+                            Upload file
+                            <input type="file" id="fileInput" accept=".json,.csv" hidden/>
+                        </label>
+                        <span id="fileName" class="small text-muted ms-2"></span>
+                    </div>
+
+                    <textarea id="orderInput" class="form-control mono" rows="16"
+                              th:text="${sampleOrderJson}"></textarea>
+
+                    <button id="routeBtn" class="btn btn-primary mt-3">Route orders</button>
+
+                    <details class="mt-3">
+                        <summary class="small text-muted">CSV format</summary>
+                        <pre class="mono bg-light p-2 rounded mt-2 mb-0">order_id,customer_zip,mail_order,product_code,quantity
+ORD-001,10015,false,WC-STD-001,1
+ORD-001,10015,false,OX-PORT-024,1</pre>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: results -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>2 · Routing results</strong></div>
+                <div class="card-body">
+                    <div id="summary"></div>
+                    <div id="results">
+                        <em class="text-muted">Results will appear here after you click
+                            <strong>Route orders</strong>.</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API / curl reference -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>3 · Call the API directly</strong>
+            <button id="copyCurl" class="btn btn-sm btn-outline-secondary">Copy</button>
+        </div>
+        <div class="card-body">
+            <p class="mb-2 small text-muted">
+                The endpoint <code>POST /api/route</code> always returns HTTP 200; the
+                <code>feasible</code> field indicates whether routing succeeded. Maximum line-item
+                quantity is <span th:text="${maxQuantity}">1000</span>.
+            </p>
+            <pre id="curlBlock" class="bg-dark text-light p-3 rounded mono" th:text="${curlCommand}"></pre>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
